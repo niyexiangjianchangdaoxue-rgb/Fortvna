@@ -9,34 +9,34 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0   # gitleaks 需要全量历史
+      - uses: actions/checkout@v6
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
+          version: "0.11.26"
           python-version: "3.13"
 
+      - name: Install just
+        uses: taiki-e/install-action@v2
+        with:
+          tool: just@1.56.0
+          fallback: none
+
       - name: Sync deps
-        run: uv sync --all-packages
+        run: uv sync --all-packages --frozen
 
-      - name: Ruff lint + format
-        run: |
-          uv run ruff check .
-          uv run ruff format --check .
-
-      - name: Mypy strict
-        run: uv run mypy factor_zoo cosmos minisha
-
-      - name: Pytest
-        run: uv run pytest -q
+      - name: Python quality gates
+        run: just quality
 
   gitleaks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Gitleaks scan
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_VERSION: "8.30.1"

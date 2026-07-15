@@ -10,8 +10,11 @@ setup:
     uv run pre-commit install
     @echo "✅ setup 完成. 记得: direnv allow"
 
-# 全部质量门禁 (CI 等价)
-check: lint typecheck test secrets-scan
+# 全部本地质量门禁 (CI 的 quality + gitleaks 两个 job 等价)
+check: quality secrets-scan
+
+# Python 质量门禁单一入口,CI 直接调用
+quality: lint typecheck test
 
 lint:
     uv run ruff check .
@@ -22,7 +25,7 @@ fmt:
     uv run ruff check --fix .
 
 typecheck:
-    uv run mypy factor_zoo cosmos minisha
+    uv run mypy --strict .
 
 test:
     uv run pytest -q
