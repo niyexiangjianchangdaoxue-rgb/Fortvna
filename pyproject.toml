@@ -1,0 +1,44 @@
+# Fortvna uv workspace 根 (第 3 章 Phase 0)
+[project]
+name = "fortvna"
+version = "0.1.0"
+description = "Fortvna 量化交易系统 —— 研发/治理/执行三子系统分权"
+requires-python = ">=3.13"
+readme = "README.md"
+
+[tool.uv.workspace]
+members = ["factor_zoo", "cosmos", "minisha"]
+
+[tool.uv.sources]
+factor_zoo = { workspace = true }
+cosmos = { workspace = true }
+minisha = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "pytest>=8",
+    "hypothesis>=6",  # Phase 1 属性测试
+]
+
+# === ruff (第 3.2 / 12 章) ===
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+# E/F 基础, I 排序, B bug 隐患, DTZ 禁止 naive datetime (第 12 章红线),
+# ASYNC asyncio 陷阱 (Minisha)
+select = ["E", "F", "I", "B", "UP", "DTZ", "ASYNC"]
+
+# === mypy strict (第 3.2 条 100% 强类型) ===
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+disallow_any_explicit = false
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "factor_zoo", "cosmos", "minisha"]

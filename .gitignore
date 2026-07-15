@@ -1,0 +1,36 @@
+# === Fortvna 安全红线 (第 5 章) ===
+# 纵深防御: 真实密钥物理上在仓库外 (~/.fortvna/secrets.env), 此处为软防线
+*.env
+!secrets.env.example
+.env.*
+~/.fortvna/
+
+# === Python / uv ===
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.hypothesis/
+
+# === 数据与实验 (报告 md 入库, 大文件不入库, 第 4.2 条) ===
+experiments/**/*.parquet
+experiments/**/*.csv
+experiments/**/data/
+*.parquet
+*.duckdb
+data/
+
+# === macOS ===
+.DS_Store
+
+# === Obsidian (个人笔记, 非工程物) ===
+.obsidian/
+
+# === 容器/日志 ===
+*.log
+pgdata/
+redisdata/

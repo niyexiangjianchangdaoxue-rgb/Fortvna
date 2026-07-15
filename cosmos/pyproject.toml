@@ -1,0 +1,18 @@
+[project]
+name = "cosmos"
+version = "0.1.0"
+description = "董事长兼中长线基金经理: 全局唯一账本, 风险预算, 熔断, 划转发起 (第 2/7 章)"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "pydantic>=2.8",
+    "uvicorn>=0.30",
+    "sqlalchemy>=2.0",
+    "psycopg[binary]>=3.2",  # PostgreSQL 16
+    "redis>=5.0",
+    "structlog>=24.1",       # JSON 结构化日志 (第 3.2 条)
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

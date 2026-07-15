@@ -1,0 +1,16 @@
+[project]
+name = "minisha"
+version = "0.1.0"
+description = "短线部门 (总监 + 员工): 1m 级执行, 微观结构判断 (第 2/8/9 章)"
+requires-python = ">=3.13"
+dependencies = [
+    "uvloop>=0.20",     # asyncio 事件循环 (附录 C-1)
+    "pydantic>=2.8",
+    "structlog>=24.1",
+    "aiohttp>=3.10",    # 经代理的 OKX REST/WS 客户端 (第 4.4 条)
+    "polars>=1.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

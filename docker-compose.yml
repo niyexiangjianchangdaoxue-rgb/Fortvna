@@ -1,0 +1,33 @@
+# Fortvna 本地单机编排 (D-003, Phase 0: postgres + redis)
+# Phase 1 追加: clickhouse, grafana
+services:
+  postgres:
+    image: postgres:16
+    container_name: fortvna-postgres
+    environment:
+      POSTGRES_DB: fortvna
+      POSTGRES_USER: fortvna
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in ~/.fortvna/secrets.env}
+    ports:
+      - "127.0.0.1:5432:5432"   # 仅本机监听
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fortvna"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: fortvna-redis
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?set REDIS_PASSWORD in ~/.fortvna/secrets.env}"]
+    ports:
+      - "127.0.0.1:6379:6379"   # 仅本机监听
+    volumes:
+      - ./redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

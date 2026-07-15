@@ -1,0 +1,14 @@
+[project]
+name = "factor_zoo"
+version = "0.1.0"
+description = "兵工厂: 纯函数因子库 / IC·IR 评估. 无状态, 无密钥, 永不下单 (第 2/6 章)"
+requires-python = ">=3.13"
+dependencies = [
+    "polars>=1.0",   # 彻底替代 Pandas, 禁止 Pandas 入库 (D-009)
+    "duckdb>=1.0",   # 本地时序查询 Parquet
+    "pydantic>=2.8", # frozen params 模型 (第 6.2 条)
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
