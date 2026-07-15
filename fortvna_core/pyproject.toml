@@ -1,0 +1,14 @@
+[project]
+name = "fortvna_core"
+version = "0.1.0"
+description = "跨子系统单点真相模块: 时区日历/密钥配置/结构化日志/UUIDv7 (第 5/12 章)"
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic>=2.8",
+    "pydantic-settings>=2.4",
+    "structlog>=24.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

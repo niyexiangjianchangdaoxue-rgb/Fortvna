@@ -1,0 +1,13 @@
+[project]
+name = "fortvna_proto"
+version = "0.1.0"
+description = "服务消息契约单点真相 (v1 进程内命令总线): 控制命令/预算下发/心跳 (第 7/8 章)"
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic>=2.8",
+    "fortvna_core",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

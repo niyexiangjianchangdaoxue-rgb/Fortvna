@@ -7,9 +7,11 @@ requires-python = ">=3.13"
 readme = "README.md"
 
 [tool.uv.workspace]
-members = ["factor_zoo", "cosmos", "minisha"]
+members = ["fortvna_core", "proto", "factor_zoo", "cosmos", "minisha"]
 
 [tool.uv.sources]
+fortvna_core = { workspace = true }
+fortvna_proto = { workspace = true }
 factor_zoo = { workspace = true }
 cosmos = { workspace = true }
 minisha = { workspace = true }
@@ -41,4 +43,4 @@ disallow_any_explicit = false
 plugins = ["pydantic.mypy"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "factor_zoo", "cosmos", "minisha"]
+testpaths = ["tests", "fortvna_core", "proto", "factor_zoo", "cosmos", "minisha"]
