@@ -6,6 +6,9 @@ import uuid
 from decimal import Decimal
 
 import pytest
+from pydantic import ValidationError
+
+from fortvna_core.ids import uuid7
 from fortvna_proto.budget import (
     COSMOS_STALE_AFTER_MS,
     MINISHA_SELF_PAUSE_AFTER_MS,
@@ -22,9 +25,6 @@ from fortvna_proto.control import (
     EmployeeState,
     is_legal_transition,
 )
-from pydantic import ValidationError
-
-from fortvna_core.ids import uuid7
 
 # 合法 UUIDv7 (契约现强制 v7)
 V7 = uuid7(1_752_547_200_000, 0xABC, 0x123456789ABCDEF)
@@ -32,18 +32,18 @@ V7 = uuid7(1_752_547_200_000, 0xABC, 0x123456789ABCDEF)
 # ---- 状态转换矩阵 (第 8.1 条) ----
 
 
-def test_active_pause_bidirectional():
+def test_active_pause_bidirectional() -> None:
     assert is_legal_transition(EmployeeState.ACTIVE, EmployeeState.PAUSED)
     assert is_legal_transition(EmployeeState.PAUSED, EmployeeState.ACTIVE)
 
 
-def test_flattening_path():
+def test_flattening_path() -> None:
     assert is_legal_transition(EmployeeState.ACTIVE, EmployeeState.FLATTENING)
     assert is_legal_transition(EmployeeState.PAUSED, EmployeeState.FLATTENING)
     assert is_legal_transition(EmployeeState.FLATTENING, EmployeeState.FLAT)
 
 
-def test_any_state_can_freeze():
+def test_any_state_can_freeze() -> None:
     for s in (
         EmployeeState.ACTIVE,
         EmployeeState.PAUSED,
@@ -53,26 +53,26 @@ def test_any_state_can_freeze():
         assert is_legal_transition(s, EmployeeState.FROZEN)
 
 
-def test_frozen_release_requires_target():
+def test_frozen_release_requires_target() -> None:
     assert is_legal_transition(EmployeeState.FROZEN, EmployeeState.ACTIVE)
     assert is_legal_transition(EmployeeState.FROZEN, EmployeeState.PAUSED)
     assert is_legal_transition(EmployeeState.FROZEN, EmployeeState.FLAT)
 
 
-def test_flat_is_paused_variant():
+def test_flat_is_paused_variant() -> None:
     # FLAT = 空仓的 PAUSED (第 8.1 条): 具备与 PAUSED 相同的出边 (可 RESUME 回 ACTIVE / 再 PAUSED)
     assert is_legal_transition(EmployeeState.FLAT, EmployeeState.ACTIVE)
     assert is_legal_transition(EmployeeState.FLAT, EmployeeState.PAUSED)
 
 
-def test_illegal_transitions_rejected():
+def test_illegal_transitions_rejected() -> None:
     # 不能从 FLATTENING 直接回 ACTIVE (必须走完 → FLAT)
     assert not is_legal_transition(EmployeeState.FLATTENING, EmployeeState.ACTIVE)
     # 不能从 ACTIVE 直接跳 FLAT (须经 FLATTENING)
     assert not is_legal_transition(EmployeeState.ACTIVE, EmployeeState.FLAT)
 
 
-def test_self_transition_is_idempotent():
+def test_self_transition_is_idempotent() -> None:
     for s in EmployeeState:
         assert is_legal_transition(s, s)
 
@@ -80,7 +80,7 @@ def test_self_transition_is_idempotent():
 # ---- 命令优先级 (第 8.1 条: FREEZE > FLATTEN > PAUSE > RESUME; EMERGENCY_STOP > 全部) ----
 
 
-def test_command_priority_order():
+def test_command_priority_order() -> None:
     p = ACTION_PRIORITY
     assert (
         p[ControlAction.FREEZE]
@@ -94,7 +94,7 @@ def test_command_priority_order():
 # ---- ControlCommand (第 8.3 条) ----
 
 
-def test_control_command_frozen_and_strict():
+def test_control_command_frozen_and_strict() -> None:
     cmd = ControlCommand(
         command_id=V7,
         target="employee_a",
@@ -105,21 +105,21 @@ def test_control_command_frozen_and_strict():
     assert cmd.priority == ACTION_PRIORITY[ControlAction.PAUSE]
     assert not cmd.is_global
     with pytest.raises(ValidationError):
-        cmd.action = ControlAction.FREEZE  # frozen
+        cmd.action = ControlAction.FREEZE  # type: ignore[misc]  # frozen
 
 
-def test_control_command_strict_rejects_wrong_type():
+def test_control_command_strict_rejects_wrong_type() -> None:
     with pytest.raises(ValidationError):
         ControlCommand(
             command_id=V7,
             target="employee_a",
             action=ControlAction.PAUSE,
             issued_by="panel",
-            ts_utc="1752547200000",  # strict: str 不是 int
+            ts_utc="1752547200000",  # type: ignore[arg-type]  # strict: str 不是 int
         )
 
 
-def test_control_command_rejects_non_uuid7():
+def test_control_command_rejects_non_uuid7() -> None:
     # 第 8.3 条: command_id 必须 UUIDv7; 注入 v4 破坏时间有序 + 幂等去重前提, 应拒绝
     with pytest.raises(ValidationError):
         ControlCommand(
@@ -131,7 +131,7 @@ def test_control_command_rejects_non_uuid7():
         )
 
 
-def test_emergency_stop_is_global():
+def test_emergency_stop_is_global() -> None:
     cmd = ControlCommand(
         command_id=V7,
         target=GLOBAL_TARGET,
@@ -145,7 +145,7 @@ def test_emergency_stop_is_global():
 # ---- BudgetGrant (第 7.2 条) ----
 
 
-def test_budget_expiry_zeroes_out():
+def test_budget_expiry_zeroes_out() -> None:
     g = BudgetGrant(
         grant_id=V7,
         employee_id="employee_a",
@@ -159,7 +159,7 @@ def test_budget_expiry_zeroes_out():
     assert g.effective_budget(1_752_547_201_000) == Decimal(0)
 
 
-def test_budget_rejects_negative():
+def test_budget_rejects_negative() -> None:
     with pytest.raises(ValidationError):
         BudgetGrant(
             grant_id=V7,
@@ -169,17 +169,17 @@ def test_budget_rejects_negative():
         )
 
 
-def test_budget_rejects_float_in_strict():
+def test_budget_rejects_float_in_strict() -> None:
     with pytest.raises(ValidationError):
         BudgetGrant(
             grant_id=V7,
             employee_id="e",
-            budget_usdt=100.5,  # strict: float 不是 Decimal
+            budget_usdt=100.5,  # type: ignore[arg-type]  # strict: float 不是 Decimal
             valid_until=1,
         )
 
 
-def test_budget_rejects_non_uuid7():
+def test_budget_rejects_non_uuid7() -> None:
     with pytest.raises(ValidationError):
         BudgetGrant(
             grant_id=uuid.uuid4(),
@@ -189,7 +189,7 @@ def test_budget_rejects_non_uuid7():
         )
 
 
-def test_heartbeat_contract():
+def test_heartbeat_contract() -> None:
     hb = Heartbeat(source="minisha", seq=42, ts_utc=1_752_547_200_000)
     assert hb.seq == 42
     with pytest.raises(ValidationError):
@@ -199,14 +199,14 @@ def test_heartbeat_contract():
 # ---- 心跳失联判定 (第 7.2 条, 与 is_expired 同一严格边界口径) ----
 
 
-def test_cosmos_stale_boundary():
+def test_cosmos_stale_boundary() -> None:
     base = 1_752_547_200_000
     assert not is_cosmos_stale(base, base + COSMOS_STALE_AFTER_MS - 1)
     # 恰好 15000ms → STALE (>=)
     assert is_cosmos_stale(base, base + COSMOS_STALE_AFTER_MS)
 
 
-def test_minisha_self_pause_boundary():
+def test_minisha_self_pause_boundary() -> None:
     base = 1_752_547_200_000
     assert not should_minisha_self_pause(base, base + MINISHA_SELF_PAUSE_AFTER_MS - 1)
     # 恰好 30000ms → 自保 PAUSED (>=)

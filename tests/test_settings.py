@@ -3,35 +3,38 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 
 from fortvna_core import settings as st
 
 
-def _write_secrets(path, mode=0o600):
+def _write_secrets(path: Path, mode: int = 0o600) -> Path:
     path.write_text("OKX_C_API_KEY=x\n")
     path.chmod(mode)
     return path
 
 
-def test_missing_file_rejected(tmp_path):
+def test_missing_file_rejected(tmp_path: Path) -> None:
     with pytest.raises(RuntimeError, match="缺失"):
         st.assert_secrets_file_secure(tmp_path / "nope.env")
 
 
-def test_wrong_permissions_rejected(tmp_path):
+def test_wrong_permissions_rejected(tmp_path: Path) -> None:
     p = _write_secrets(tmp_path / "secrets.env", mode=0o644)
     with pytest.raises(RuntimeError, match="权限"):
         st.assert_secrets_file_secure(p)
 
 
-def test_correct_permissions_pass(tmp_path):
+def test_correct_permissions_pass(tmp_path: Path) -> None:
     p = _write_secrets(tmp_path / "secrets.env", mode=0o600)
     st.assert_secrets_file_secure(p)  # 不抛异常
 
 
-def test_load_settings_reads_env_and_redacts(tmp_path, monkeypatch):
+def test_load_settings_reads_env_and_redacts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     env = {
         "OKX_C_API_KEY": "ck",
         "OKX_C_SECRET": "cs",
@@ -59,7 +62,7 @@ def test_load_settings_reads_env_and_redacts(tmp_path, monkeypatch):
     assert "ck" not in repr(cfg)
 
 
-def test_load_settings_permission_gate(tmp_path, monkeypatch):
+def test_load_settings_permission_gate(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     # check_permissions=True 且文件缺失 → 拒绝
     monkeypatch.delenv("OKX_C_API_KEY", raising=False)
     with pytest.raises(RuntimeError):

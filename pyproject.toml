@@ -34,6 +34,9 @@ line-length = 100
 # ASYNC asyncio 陷阱 (Minisha)
 select = ["E", "F", "I", "B", "UP", "DTZ", "ASYNC"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["cosmos", "factor_zoo", "fortvna_core", "fortvna_proto", "minisha"]
+
 # === mypy strict (第 3.2 条 100% 强类型) ===
 [tool.mypy]
 python_version = "3.13"
@@ -41,6 +44,7 @@ strict = true
 warn_unreachable = true
 disallow_any_explicit = false
 plugins = ["pydantic.mypy"]
+mypy_path = ["fortvna_core", "proto", "factor_zoo", "cosmos", "minisha"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "fortvna_core", "proto", "factor_zoo", "cosmos", "minisha"]
